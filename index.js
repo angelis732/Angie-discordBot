@@ -23,7 +23,7 @@ client.on('message', msg => {
     msg.channel.send(`Hola, ${msg.author.username}`)
   }
   
-  if(msg.content === '!Angie'){
+  if(msg.content === '!Angelita'){
     msg.channel.send('https://www.linkedin.com/in/angelismar-magallanes/')
   }
   
