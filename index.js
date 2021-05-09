@@ -1,10 +1,16 @@
-const { Client, MessageEmbed } = require('discord.js');
-const client = new Client();
+const fs = require("fs");
+const { Client, Collection } = require('discord.js');
 const { prefix, token } = require('./config.json');
-require('dotenv').config();
+const client = new Client();
 
-client.login(token);
+client.commands = new Collection();
 
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+
+for (const file of commandFiles) {
+  const command = require(`./commands/${file}`);
+  client.commands.set(command.name, command);
+}
 
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -13,37 +19,18 @@ client.once('ready', () => {
 
 
 client.on('message', message => {
-  
   if (!message.content.startsWith(prefix) || message.author.bot) return;
   
   const args = message.content.slice(prefix.length).trim().split(/ +/);
   const command = args.shift().toLowerCase();
-  console.log(command)
   
- if(message.content === "!clear"){
-    message.channel.bulkDelete(100, true)
-      .then(messages =>{
-        message.channel.send(`You have deleted ${messages.size} messages`)
-          .then(notice => notice.delete({timeout:2000}))
-      })
-      .catch(console.error);
-  }else if(message.content === `${prefix}hola`){
-   message.channel.send(`Hola ${message.author.username}`)
- }
-  else if(message.content === `${prefix}pretty`) {
-    const embed = new MessageEmbed()
-      .setTitle('Esto es una prueba de mensaje empotrado')
-      .setColor('DARK_PURPLE')
-      .setDescription('sigo probando')
-    message.channel.send(embed)
-  }else if (command === 'ping') {
-    message.channel.send('Pong.');
-  }else if (command === 'info') {
-    if (!args.length) {
-      return message.channel.send(`You didn't provide any arguments, ${message.author}!`);
-    }
-    
-    message.channel.send(`Command name: ${command}\nArguments: ${args}`);
+  if (!client.commands.has(command)) return;
+  
+  try {
+    client.commands.get(command).execute(message, args);
+  } catch (error) {
+    console.error(error);
+    message.reply('there was an error trying to execute that command!');
   }
 });
 
@@ -55,14 +42,37 @@ client.on('guildMemberAdd', member => {
 });
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
-  console.log(
-    "este es el estado viejo", oldState,
-    "este es el nuevo estado", newState,
-    "este es el  cliente",
+  if(newState.channel){
+    let connection = await newState.channel.join()
+    const dispatcher = connection.play('audio.opus');
     
-  )
-});
+    dispatcher.on('error', console.error);
+  }else{
+    oldState.channel.leave()
+  }
+  
+})
+
+// client.on('message', async message => {
+//   // Join the same voice channel of the author of the message
+//   if (message.member.voice.channel) {
+//     var connection = await message.member.voice.channel.join();
+//   }
+//
+//   const dispatcher = connection.play('audio.opus');
+//
+//   dispatcher.on('start', () => {
+//     console.log('audio.mp3 is now playing!');
+//   });
+//
+//   dispatcher.on('finish', () => {
+//     console.log('audio.mp3 has finished playing!');
+//   });
+//
+// // Always remember to handle errors appropriately!
+//   dispatcher.on('error', console.error);
+// });
 
 
-
+client.login(token);
 
