@@ -1,50 +1,68 @@
-const { Client, MessageEmbed, MessageAttachment  } = require('discord.js');
+const { Client, MessageEmbed } = require('discord.js');
 const client = new Client();
-require('dotenv').config()
+const { prefix, token } = require('./config.json');
+require('dotenv').config();
 
-client.on('ready', () => {
+client.login(token);
+
+
+client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
-  client.user.setStatus('invisible')
-
   console.log(client.user.presence.status)
-  const testChannel = client.channels.cache.find(channel => channel.name === 'bot')
-
 });
 
 
-
-client.on('message', msg => {
-  //Receiving the message
-  console.log(msg.content)
-  if (msg.content === 'ping') {
-    msg.reply('Pong!');
-  }
-  if (msg.content === 'Hola') {
-    msg.channel.send(`Hola, ${msg.author.username}`)
-  }
+client.on('message', message => {
   
-  if(msg.content === '!Angelita'){
-    msg.channel.send('https://www.linkedin.com/in/angelismar-magallanes/')
-  }
+  if (!message.content.startsWith(prefix) || message.author.bot) return;
   
-  if(msg.content === '!pretty') {
+  const args = message.content.slice(prefix.length).trim().split(/ +/);
+  const command = args.shift().toLowerCase();
+  console.log(command)
+  
+ if(message.content === "!clear"){
+    message.channel.bulkDelete(100, true)
+      .then(messages =>{
+        message.channel.send(`You have deleted ${messages.size} messages`)
+          .then(notice => notice.delete({timeout:2000}))
+      })
+      .catch(console.error);
+  }else if(message.content === `${prefix}hola`){
+   message.channel.send(`Hola ${message.author.username}`)
+ }
+  else if(message.content === `${prefix}pretty`) {
     const embed = new MessageEmbed()
       .setTitle('Esto es una prueba de mensaje empotrado')
       .setColor('DARK_PURPLE')
       .setDescription('sigo probando')
-    msg.channel.send(embed)
-    console.log(embed)
-  }
-
-  
-  //delete messages
-  client.on('messages', async msg => {
-    if(msg.content === '!clear'){
-     const channelMsg =  await msg.channel.fetch();
-     msg.channel.bulkDelete(channelMsg)
+    message.channel.send(embed)
+  }else if (command === 'ping') {
+    message.channel.send('Pong.');
+  }else if (command === 'info') {
+    if (!args.length) {
+      return message.channel.send(`You didn't provide any arguments, ${message.author}!`);
     }
-  })
+    
+    message.channel.send(`Command name: ${command}\nArguments: ${args}`);
+  }
 });
 
-client.login(process.env.DISCORD_TOKEN);
+// Create an event listener for new guild members
+client.on('guildMemberAdd', member => {
+  const channel = member.guild.channels.cache.find(ch => ch.name === 'member-log');
+  if (!channel) return;
+  channel.send(`Welcome to the server, ${member}`);
+});
+
+client.on('voiceStateUpdate', async (oldState, newState) => {
+  console.log(
+    "este es el estado viejo", oldState,
+    "este es el nuevo estado", newState,
+    "este es el  cliente",
+    
+  )
+});
+
+
+
 
