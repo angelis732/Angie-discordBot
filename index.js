@@ -1,7 +1,8 @@
 const fs = require("fs");
 const { Client, Collection } = require('discord.js');
-const { prefix, token } = require('./config.json');
+const { prefix } = require('./config.json');
 const client = new Client();
+require("dotenv").config()
 
 client.commands = new Collection();
 
@@ -47,32 +48,13 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     const dispatcher = connection.play('audio.opus');
     
     dispatcher.on('error', console.error);
+    
   }else{
     oldState.channel.leave()
   }
   
-})
-
-// client.on('message', async message => {
-//   // Join the same voice channel of the author of the message
-//   if (message.member.voice.channel) {
-//     var connection = await message.member.voice.channel.join();
-//   }
-//
-//   const dispatcher = connection.play('audio.opus');
-//
-//   dispatcher.on('start', () => {
-//     console.log('audio.mp3 is now playing!');
-//   });
-//
-//   dispatcher.on('finish', () => {
-//     console.log('audio.mp3 has finished playing!');
-//   });
-//
-// // Always remember to handle errors appropriately!
-//   dispatcher.on('error', console.error);
-// });
+});
 
 
-client.login(token);
+client.login(process.env.DISCORD_TOKEN);
 

@@ -3,10 +3,9 @@ module.exports = {
   description: 'clear!',
   execute(message, args) {
     const amount = parseInt(args[0]) + 1; //
-  console.log('este es el argumento', args)
-  console.log("esta es la cantidad", amount)
+
     if (isNaN(amount) || amount <= 1 || amount >= 100 ) {
-      return message.reply('Debe colocar un numero entre 1 y 99');
+      return message.reply('Debes indicar la cantidad de mensajes a borrar. debe ser un numero entre 1 y 99');
     }
   
     message.channel.bulkDelete(amount, true)
